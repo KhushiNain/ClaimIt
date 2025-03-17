@@ -18,7 +18,7 @@ const signUpSchema = Joi.object({
 
 userRouter.post('/signUp' , async (req , res)=>{
     try{
-        const { name , email , password , role} = req.body;
+        const { userId, name , email , password , role} = req.body;
         
 
         // Checking if user already exists
@@ -44,7 +44,8 @@ userRouter.post('/signUp' , async (req , res)=>{
             const hashedPassword = await bcrypt.hash(password,salt);
 
             // Adding user into database
-            const newUser = {           // recording user info
+            const newUser = { // recording user info
+                userId,          
                 name,
                 email,
                 password: hashedPassword,
@@ -53,9 +54,11 @@ userRouter.post('/signUp' , async (req , res)=>{
 
             // inserting data into 
             const insertedData = await userModel.create(newUser);
-            console.log(insertedData)
+            console.log(insertedData, "hehe")
+            
             const payload = {id:insertedData._id,email:email,role:role}
             const token = jwt.sign(payload,secretKey,{expiresIn:'2h'})
+            console.log(token)
             res.status(201).json({token})
 
         }
