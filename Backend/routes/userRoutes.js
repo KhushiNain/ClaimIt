@@ -54,7 +54,7 @@ userRouter.post('/signUp' , async (req , res)=>{
 
             // inserting data into 
             const insertedData = await userModel.create(newUser);
-            console.log(insertedData, "hehe")
+            console.log(insertedData)
             
             const payload = {id:insertedData._id,email:email,role:role}
             const token = jwt.sign(payload,secretKey,{expiresIn:'2h'})
@@ -72,6 +72,43 @@ userRouter.post('/signUp' , async (req , res)=>{
 })
 
 // POST : LogIn Backend Implementation 
+userRouter.post("/login",async (req,res)=>{
+    try{
+        const {email , password } = req.body;
+        // Checking if User Exist:
+        const ifExist = await userModel.findOne({email});
+
+        if (ifExist){
+            // Checking if password is valid:
+            const IsPasswordValid = await bcrypt.compare(password,ifExist.password)
+            if (!IsPasswordValid){
+                return res.status(401).json({message:"credentials Invalid"})
+            }
+            // Generating JWT token when credentials matchs:
+            const payload = {id:ifExist._id,email:email,role:ifExist.role}
+            const token = jwt.sign(payload,secretKey,{expiresIn:'2h'})
+            console.log(token)
+            // Sending token and user details
+            return res.status(201).json({token})
+
+
+        }else{
+            console.log('User dont exist')
+            return res.status(404).json({message:'User Not Found'})
+
+        }
+
+    }catch(error){
+        console.error('Error in Login:', error.message);
+        return res.status(500).json({ message: 'Internal Server Error' });
+    }
+})
+
+
+
+
+
+
 
 // Getting All existing users:
 userRouter.get('/users',async (req,res)=>{
